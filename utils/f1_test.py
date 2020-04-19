@@ -77,8 +77,8 @@ def f1_test(exp_tags, pred_tags, debug):
         pred_entities = extract_entites(pred_tags[i])
 
         if debug:
-            print(i, exp_entities)
-            print(i, pred_entities)
+            print('sample {0} GT= {1}' .format(i, exp_entities))
+            print('sample {0} PRED= {1}' .format(i, pred_entities))
         was_fn = False
         was_fp = False
         for j, entity in enumerate(pred_entities):

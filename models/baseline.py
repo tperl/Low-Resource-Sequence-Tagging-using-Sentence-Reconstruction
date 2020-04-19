@@ -7,12 +7,14 @@ def BaselineModel(word_in,
                   char_in,
                   embedding_matrix,
                   n_chars,
-                  word_emb_output_dim,
                   max_len_char,
                   max_len,
-                  h1,h2,h3,
                   n_tags):
-    emb_char = TimeDistributed(Embedding(input_dim=n_chars + 2, output_dim=word_emb_output_dim,
+    h1 = 80
+    h2 = 80
+    h3 = 120
+    output_dim = 50
+    emb_char = TimeDistributed(Embedding(input_dim=n_chars + 2, output_dim=output_dim,
                                          input_length=max_len_char, mask_zero=False))(char_in)
     # character LSTM to get word encodings by characters
     # char_enc = TimeDistributed(Bidirectional(LSTM(units=50, return_sequences=True, recurrent_dropout=0.3,dropout=0.3)))(emb_char)
@@ -30,7 +32,7 @@ def BaselineModel(word_in,
     model = TimeDistributed(Dropout(0.5))(model)
     model = Bidirectional(CuDNNLSTM(units=h3, return_sequences=True))(model)  # variational biLSTM
     model = TimeDistributed(Dropout(0.5))(model)
-    crf = CRF(units=n_tags)  # CRF layer
+    crf = CRF(units=n_tags,learn_mode='marginal')  # CRF layer
     model = crf(model)  # outpu
 
     model = Model([word_in, char_in], model)
