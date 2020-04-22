@@ -12,11 +12,12 @@ def TransferModel(word_in,
                   n_chars,
                   max_len_char,
                   max_len,
-                  n_tags):
+                  n_tags,
+                  add_reconstruction):
     h1 = 80
-    h2 = 80
-    h3 = 80
-    output_dim = 35
+    h2 = 50
+    h3 = 50
+    output_dim = 30
     embedding_size = src_embedding_matrix.shape[1]
 
     def wordL2Norm(x):
@@ -62,11 +63,14 @@ def TransferModel(word_in,
     model = crf(model)  # outpu
 
     # Reconstruction branch
-    d1 = Conv1D(filters=8, kernel_size=3, padding='same', activation='relu')(fv)
-    d2 = Conv1D(filters=16, kernel_size=3, padding='same', activation='relu')(d1)
-    d3 = Conv1D(filters=32, kernel_size=3, padding='same', activation='relu')(d2)
-    d4 = Conv1D(filters=64, kernel_size=3, padding='same', activation='relu')(d3)
-    decoder_out = Conv1D(filters=embedding_size, kernel_size=1, padding='same', use_bias=False)(d4)
-    decoder_out = Lambda(wordL2Norm)(decoder_out)
-    model = Model([word_in, char_in, lang_in], model)
+    if add_reconstruction:
+        d1 = Conv1D(filters=8, kernel_size=3, padding='same', activation='relu')(fv)
+        d2 = Conv1D(filters=16, kernel_size=3, padding='same', activation='relu')(d1)
+        d3 = Conv1D(filters=32, kernel_size=3, padding='same', activation='relu')(d2)
+        d4 = Conv1D(filters=64, kernel_size=3, padding='same', activation='relu')(d3)
+        decoder_out = Conv1D(filters=embedding_size, kernel_size=1, padding='same', use_bias=False)(d4)
+        decoder_out = Lambda(wordL2Norm)(decoder_out)
+        model = Model([word_in, char_in], [model, decoder_out])
+    else:
+        model = Model([word_in, char_in, lang_in], model)
     return model, crf

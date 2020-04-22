@@ -37,7 +37,7 @@ def run_test(X_muse_test, X_char_test, idx2tag, model, max_len, y_test, debug_mo
         i+= 1
     gt_tags = np.argmax(y_test,axis=2)
     gt_tags = [[idx2tag[str(gt_tags[j][i])] for i in range(max_len)] for j in range(X_muse_test.shape[0])]
-    f1_test(gt_tags,pred_tags, debug_mode)
+    return f1_test(gt_tags,pred_tags, debug_mode)
 
 
 def main(parser):
@@ -62,32 +62,31 @@ def main(parser):
         from models.baseline import BaselineModel
         word_in = Input(shape=(max_len,))
         char_in = Input(shape=(max_len, max_len_char,))
-        model, crf = BaselineModel(word_in, char_in, embedding_matrix, n_chars, max_len_char, max_len, n_tags)
+        model, crf = BaselineModel(word_in, char_in, embedding_matrix, n_chars, max_len_char, max_len, n_tags, args.add_reconstruction)
 
         model.load_weights('saved_models/model_baseline.h5')
-        run_test(X_tgt_muse_test, X_char_test, idx2tag, model, max_len, y_test)
-    elif args.model == 'L2':
-        from models.reconstruction_model import ReconstructionModel
-        word_in = Input(shape=(max_len,))
-        char_in = Input(shape=(max_len, max_len_char,))
-        model, crf = ReconstructionModel(word_in, char_in, embedding_matrix, n_chars, max_len_char, max_len, n_tags)
-        model.load_weights('saved_models/model_reconstruction.h5')
-        run_test(X_tgt_muse_test, X_char_test, idx2tag, model, max_len, y_test,debug_mode=True)
+        f1, precision, recall = run_test(X_tgt_muse_test, X_char_test, idx2tag, model, max_len, y_test)
     elif args.model == 'transfer':
         from models.transfer_model import TransferModel
         word_in = Input(shape=(max_len,))
         char_in = Input(shape=(max_len, max_len_char,))
         lang_in = Input(shape=(max_len,))
-        model, crf = TransferModel(word_in, char_in, lang_in, embedding_matrix, embedding_matrix, n_chars, max_len_char, max_len, n_tags)
+        model, crf = TransferModel(word_in, char_in, lang_in, embedding_matrix, embedding_matrix, n_chars, max_len_char, max_len, n_tags, args.add_reconstruction)
         X_lang = np.full((X_tgt_muse_test.shape[0], X_tgt_muse_test.shape[1]), True, dtype=bool)
-        model.load_weights('saved_models/model_transfer_snapshot.h5')
-        run_test(X_tgt_muse_test, X_char_test, idx2tag, model, max_len, y_test,debug_mode=True, X_lang=X_lang)
+        model.load_weights('saved_models/model_transfer.h5')
+        f1, precision, recall = run_test(X_tgt_muse_test, X_char_test, idx2tag, model, max_len, y_test,debug_mode=True, X_lang=X_lang)
 
+    if args.log_results is not None:
+        with open(args.log_results,'w') as f_out:
+            out_string = 'f1='+str(f1) + '\nprecision='+ str(precision) + '\nrecall='+str(recall)
+            f_out.writelines(out_string)
     print('Done')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--lang', help='What Language to train',default='dutch')
     parser.add_argument('--src_lang', help='What Language to train', default='english')
+    parser.add_argument('--add_reconstruction', help='Flag for conc`atentating train with dev', default=False)
     parser.add_argument('--model', help='Flag for what model to choose baseline/L2/', default='transfer')
+    parser.add_argument('--log_results', help='location to log test results/', default=None)
     main(parser)

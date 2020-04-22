@@ -6,6 +6,8 @@ import keras
 import os
 import tensorflow as tf
 import json
+import keras.backend as K
+from keras.losses import cosine_proximity
 
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
@@ -66,10 +68,13 @@ def main(parser):
         from models.baseline import BaselineModel
         word_in = Input(shape=(max_len,))
         char_in = Input(shape=(max_len, max_len_char,))
-        model, crf = BaselineModel(word_in, char_in, tgt_embedding_matrix, n_chars, max_len_char, max_len, n_tags)
-        in_data = [X_tgt_tr,
-                   np.array(X_tgt_char_tr)]
-        out_data = np.array(y_tgt_tr)
+        model, crf = BaselineModel(word_in, char_in, tgt_embedding_matrix, n_chars, max_len_char, max_len, n_tags, args.add_reconstruction)
+
+        in_data = [X_tgt_tr, np.array(X_tgt_char_tr)]
+        if args.add_reconstruction:
+            out_data = [np.array(y_tgt_tr), tgt_embedding_matrix[X_tgt_tr.astype(int)]]
+        else:
+            out_data = np.array(y_tgt_tr)
     elif args.model == 'transfer':
         from models.transfer_model import TransferModel
         word_in = Input(shape=(max_len,))
@@ -94,25 +99,46 @@ def main(parser):
         X_lang_tr[X_tgt_tr.shape[0]:] = False
 
         # create keras model
-        model, crf = TransferModel(word_in, char_in, lang_in, src_embedding_matrix, tgt_embedding_matrix, n_chars, max_len_char, max_len, n_tags)
+        model, crf = TransferModel(word_in, char_in, lang_in, src_embedding_matrix, tgt_embedding_matrix, n_chars, max_len_char, max_len, n_tags, args.add_reconstruction)
         in_data = [X_tr,
                    np.array(X_char), X_lang_tr]
-        out_data = np.array(y_tr)
+
+        if args.add_reconstruction:
+            out_data = [np.array(y_tgt_tr), tgt_embedding_matrix[X_tgt_tr].astype(int)]
+        else:
+            out_data = np.array(y_tgt_tr)
 
     if args.model_weights is not None:
         model.load_weights(args.model_weights)
 
-    optimizer = Adam(float(args.learning_rate))
-    model.compile(optimizer=optimizer, loss=crf.loss_function, metrics=[crf.accuracy])
+    def reconstruction_loss(y_true, y_pred):
+        return K.mean(K.square(y_true - y_pred), axis=-1)
 
-    sm_cb = keras.callbacks.ModelCheckpoint('saved_models/model_'+args.model+'_snapshot.h5', monitor='crf_viterbi_accuracy', verbose=0, save_best_only=True,
+    if args.reconstruction_loss == 'L2':
+        r_loss = reconstruction_loss
+    else:
+        r_loss = cosine_proximity
+
+    optimizer = Adam(float(args.learning_rate))
+
+    if args.add_reconstruction:
+        model.compile(optimizer=optimizer, loss=[crf.loss_function, r_loss])
+    else:
+        model.compile(optimizer=optimizer, loss=crf.loss_function, metrics=[crf.accuracy])
+
+    if args.add_reconstruction:
+        monitor_string = 'loss'
+    else:
+        monitor_string = 'crf_1_loss'
+
+    sm_cb = keras.callbacks.ModelCheckpoint('saved_models/model_'+args.model+'_snapshot.h5', monitor=monitor_string, verbose=0, save_best_only=True,
                                             save_weights_only=True, mode='auto', period=1)
-    rlr_cb = keras.callbacks.ReduceLROnPlateau(monitor='crf_viterbi_accuracy', factor=0.1, patience=5, verbose=0, mode='auto',
+    rlr_cb = keras.callbacks.ReduceLROnPlateau(monitor=monitor_string, factor=0.1, patience=5, verbose=0, mode='auto',
                                                min_delta=0.0001, cooldown=0, min_lr=0)
     # train model
     model.fit(in_data, out_data,
               batch_size=args.batch_size,
-              epochs=args.num_of_epochs,
+              epochs=int(args.num_of_epochs),
               verbose=args.verbosity,
               callbacks=[sm_cb, rlr_cb])
 
@@ -123,14 +149,16 @@ if __name__ == '__main__':
     parser.add_argument('--lang', help='What Language to train',default='dutch')
     parser.add_argument('--src_lang', help='What Language to train', default='english')
     parser.add_argument('--concatenate_dev_train', help='Flag for concatentating train with dev', default=True)
+    parser.add_argument('--add_reconstruction', help='Flag for adding reconstruction loss', default=False)
+    parser.add_argument('--reconstruction_loss', help='Flag for type of reconstruction loss', default='L2')
     parser.add_argument('--model',
-                        help='Flag for what model to choose: baseline/L2/transfer',
+                        help='Flag for what model to choose: baseline/transfer',
                         default='baseline')
     parser.add_argument('--model_weights',
-                        help='Flag for what model to choose: baseline/L2/transfer',
+                        help='Flag for what model to choose: baseline/transfer',
                         default=None)
-    parser.add_argument('--batch_size', help='batch_size', default=256)
+    parser.add_argument('--batch_size', help='batch_size', default=128)
     parser.add_argument('--num_of_epochs', help='num_of_epochs', default=50)
-    parser.add_argument('--verbosity', help='verbosity for printing during training', default=1)
+    parser.add_argument('--verbosity', help='verbosity for printing during training', default=2)
     parser.add_argument('--learning_rate', help='learning rate for training', default=0.01)
     main(parser)
