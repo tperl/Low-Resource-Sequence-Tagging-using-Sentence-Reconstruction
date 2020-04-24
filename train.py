@@ -90,23 +90,24 @@ def main(parser):
             y_src_tr = np.concatenate((y_src_tr, y_src_dev), axis=0)
 
         # Final dataset is both src and target, could be expanded to multiple languages
-        X_tr = np.concatenate((X_tgt_tr, X_tgt_tr, X_src_tr), axis=0)
-        X_char = np.concatenate((X_tgt_char_tr,X_tgt_char_tr, X_src_char_tr), axis=0)
-        y_tr = np.concatenate((y_tgt_tr,y_tgt_tr, y_src_tr), axis=0)
+        X_tr = np.concatenate((X_tgt_tr, X_src_tr), axis=0)
+        X_char = np.concatenate((X_tgt_char_tr, X_src_char_tr), axis=0)
+        y_tr = np.concatenate((y_tgt_tr, y_src_tr), axis=0)
 
         # language selector input
         X_lang_tr = np.full((X_tr.shape[0], X_tr.shape[1]), True, dtype=bool)
         X_lang_tr[X_tgt_tr.shape[0]:] = False
 
+        total_embedding_matrix =  np.concatenate((tgt_embedding_matrix[X_tgt_tr.astype(int)],src_embedding_matrix[X_src_tr.astype(int)]),axis=0)
         # create keras model
         model, crf = TransferModel(word_in, char_in, lang_in, src_embedding_matrix, tgt_embedding_matrix, n_chars, max_len_char, max_len, n_tags, args.add_reconstruction)
         in_data = [X_tr,
                    np.array(X_char), X_lang_tr]
 
         if args.add_reconstruction:
-            out_data = [np.array(y_tgt_tr), tgt_embedding_matrix[X_tgt_tr].astype(int)]
+            out_data = [np.array(y_tr), total_embedding_matrix]
         else:
-            out_data = np.array(y_tgt_tr)
+            out_data = np.array(y_tr)
 
     if args.model_weights is not None:
         model.load_weights(args.model_weights)
@@ -127,9 +128,9 @@ def main(parser):
         model.compile(optimizer=optimizer, loss=crf.loss_function, metrics=[crf.accuracy])
 
     if args.add_reconstruction:
-        monitor_string = 'loss'
-    else:
         monitor_string = 'crf_1_loss'
+    else:
+        monitor_string = 'loss'
 
     sm_cb = keras.callbacks.ModelCheckpoint('saved_models/model_'+args.model+'_snapshot.h5', monitor=monitor_string, verbose=0, save_best_only=True,
                                             save_weights_only=True, mode='auto', period=1)
@@ -158,7 +159,7 @@ if __name__ == '__main__':
                         help='Flag for what model to choose: baseline/transfer',
                         default=None)
     parser.add_argument('--batch_size', help='batch_size', default=128)
-    parser.add_argument('--num_of_epochs', help='num_of_epochs', default=50)
+    parser.add_argument('--num_of_epochs', help='num_of_epochs', default=100)
     parser.add_argument('--verbosity', help='verbosity for printing during training', default=2)
-    parser.add_argument('--learning_rate', help='learning rate for training', default=0.01)
+    parser.add_argument('--learning_rate', help='learning rate for training', default=0.005)
     main(parser)

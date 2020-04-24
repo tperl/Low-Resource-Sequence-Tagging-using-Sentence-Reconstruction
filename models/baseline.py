@@ -12,10 +12,10 @@ def BaselineModel(word_in,
                   max_len,
                   n_tags,
                   add_reconstruction):
-    h1 = 80
-    h2 = 80
-    h3 = 120
-    output_dim = 50
+    h1 = 30
+    h2 = 30
+    h3 = 60
+    output_dim = 35
     embedding_size = embedding_matrix.shape[1]
 
     def wordL2Norm(x):

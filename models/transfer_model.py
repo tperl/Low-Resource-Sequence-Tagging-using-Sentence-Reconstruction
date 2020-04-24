@@ -14,9 +14,9 @@ def TransferModel(word_in,
                   max_len,
                   n_tags,
                   add_reconstruction):
-    h1 = 80
-    h2 = 50
-    h3 = 50
+    h1 = 60
+    h2 = 60
+    h3 = 60
     output_dim = 30
     embedding_size = src_embedding_matrix.shape[1]
 
@@ -70,7 +70,7 @@ def TransferModel(word_in,
         d4 = Conv1D(filters=64, kernel_size=3, padding='same', activation='relu')(d3)
         decoder_out = Conv1D(filters=embedding_size, kernel_size=1, padding='same', use_bias=False)(d4)
         decoder_out = Lambda(wordL2Norm)(decoder_out)
-        model = Model([word_in, char_in], [model, decoder_out])
+        model = Model([word_in, char_in, lang_in], [model, decoder_out])
     else:
         model = Model([word_in, char_in, lang_in], model)
     return model, crf

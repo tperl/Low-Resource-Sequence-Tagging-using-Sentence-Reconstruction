@@ -47,9 +47,15 @@ def main(parser):
     with open('../data/parsed/' + lang + '/idx2tag.json') as f:
         idx2tag = json.load(f)
 
-    X_tgt_muse_test = np.load('../data/parsed/' + lang + '/X_muse_test.npy')
-    X_char_test = np.load('../data/parsed/' + lang + '/X_char_test.npy')
-    y_test = np.load('../data/parsed/' + lang + '/y_test.npy')
+    test_train = False
+    if test_train:
+        X_tgt_muse_test = np.load('../data/parsed/' + lang + '/X_muse.npy')
+        X_char_test = np.load('../data/parsed/' + lang + '/X_char.npy')
+        y_test = np.load('../data/parsed/' + lang + '/y.npy')
+    else:
+        X_tgt_muse_test = np.load('../data/parsed/' + lang + '/X_muse_test.npy')
+        X_char_test = np.load('../data/parsed/' + lang + '/X_char_test.npy')
+        y_test = np.load('../data/parsed/' + lang + '/y_test.npy')
     embedding_matrix = np.load('../data/parsed/' + lang + '/embedding_matrix.npy')
 
     # Vars for each corpus
