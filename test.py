@@ -79,7 +79,7 @@ def main(parser):
         lang_in = Input(shape=(max_len,))
         model, crf = TransferModel(word_in, char_in, lang_in, embedding_matrix, embedding_matrix, n_chars, max_len_char, max_len, n_tags, args.add_reconstruction)
         X_lang = np.full((X_tgt_muse_test.shape[0], X_tgt_muse_test.shape[1]), True, dtype=bool)
-        model.load_weights('saved_models/model_transfer.h5')
+        model.load_weights('saved_models/model_transfer_snapshot.h5')
         f1, precision, recall = run_test(X_tgt_muse_test, X_char_test, idx2tag, model, max_len, y_test,debug_mode=True, X_lang=X_lang)
 
     if args.log_results is not None:

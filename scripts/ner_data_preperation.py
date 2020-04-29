@@ -82,7 +82,7 @@ def prepare_ner_data(src,dst,is_2003=False,is_dutch=False):
                             line = line.replace('I-', 'E-')
 
 
-                    if new_sentence or (count > 45 and 'I-' not in line and 'E-' not in line and '.' not in line):
+                    if new_sentence or (count > 60 and 'I-' not in line and 'E-' not in line and '.' not in line):
                         words = "Sentence: " + str(sentence_counter)+',' + line.replace(' ',',')+'\n'
                         new_sentence = False
                         sentence_counter += 1

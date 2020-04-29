@@ -12,10 +12,10 @@ def BaselineModel(word_in,
                   max_len,
                   n_tags,
                   add_reconstruction):
-    h1 = 30
-    h2 = 30
-    h3 = 60
-    output_dim = 35
+    h1 = 80
+    h2 = 80
+    h3 = 80
+    output_dim = 40
     embedding_size = embedding_matrix.shape[1]
 
     def wordL2Norm(x):
@@ -40,11 +40,11 @@ def BaselineModel(word_in,
     model = Bidirectional(CuDNNLSTM(units=h2, return_sequences=True))(model)  # variational biLSTM
 
     # Normalized Feature vector
-    fv = TimeDistributed(Dropout(0.35))(model)
+    fv = TimeDistributed(Dropout(0.5))(model)
     fv = Lambda(sentenceL2Norm, name='feature_vector')(fv)
 
     model = Bidirectional(CuDNNLSTM(units=h3, return_sequences=True))(fv)  # variational biLSTM
-    model = TimeDistributed(Dropout(0.35))(model)
+    model = TimeDistributed(Dropout(0.5))(model)
     crf = CRF(units=n_tags)  # CRF layer
     model = crf(model)  # outpu
 

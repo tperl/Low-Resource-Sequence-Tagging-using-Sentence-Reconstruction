@@ -14,10 +14,10 @@ def TransferModel(word_in,
                   max_len,
                   n_tags,
                   add_reconstruction):
-    h1 = 60
-    h2 = 60
-    h3 = 60
-    output_dim = 30
+    h1 = 160
+    h2 = 160
+    h3 = 100
+    output_dim = 60
     embedding_size = src_embedding_matrix.shape[1]
 
     def wordL2Norm(x):

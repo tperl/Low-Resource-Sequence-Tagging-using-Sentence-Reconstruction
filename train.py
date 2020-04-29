@@ -8,6 +8,7 @@ import tensorflow as tf
 import json
 import keras.backend as K
 from keras.losses import cosine_proximity
+from sklearn.model_selection import train_test_split
 
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
@@ -54,6 +55,11 @@ def main(parser):
         X_tgt_tr = np.concatenate((X_tgt_tr, X_tgt_dev), axis=0)
         X_tgt_char_tr = np.concatenate((X_tgt_char_tr, X_tgt_char_dev), axis=0)
         y_tgt_tr = np.concatenate((y_tgt_tr, y_tgt_dev), axis=0)
+
+    if args.labeling_rate != 1.0:
+        X_tgt_tr, X_tgt_te, y_tr, y_te = train_test_split(X_tgt_tr, y_tgt_tr, test_size=1-args.labeling_rate, random_state=23)
+        X_tgt_char_tr, X_char_te, _, _ = train_test_split(X_tgt_char_tr, y_tgt_tr, test_size=1-args.labeling_rate, random_state=23)
+        y_tgt_tr = y_tr
 
     # Vars for each corpus
     n_chars = np.max(X_tgt_char_tr) - 1
@@ -125,7 +131,7 @@ def main(parser):
     if args.add_reconstruction:
         model.compile(optimizer=optimizer, loss=[crf.loss_function, r_loss])
     else:
-        model.compile(optimizer=optimizer, loss=crf.loss_function, metrics=[crf.accuracy])
+        model.compile(optimizer=optimizer, loss=crf.loss_function, metrics=[crf.accuracy], loss_weights=[1, 0.1])
 
     if args.add_reconstruction:
         monitor_string = 'crf_1_loss'
@@ -158,8 +164,9 @@ if __name__ == '__main__':
     parser.add_argument('--model_weights',
                         help='Flag for what model to choose: baseline/transfer',
                         default=None)
-    parser.add_argument('--batch_size', help='batch_size', default=128)
-    parser.add_argument('--num_of_epochs', help='num_of_epochs', default=100)
+    parser.add_argument('--batch_size', help='batch_size', default=64)
+    parser.add_argument('--num_of_epochs', help='num_of_epochs', default=60)
     parser.add_argument('--verbosity', help='verbosity for printing during training', default=2)
-    parser.add_argument('--learning_rate', help='learning rate for training', default=0.005)
+    parser.add_argument('--learning_rate', help='learning rate for training', default=0.001)
+    parser.add_argument('--labeling_rate', help='learning rate for training', default=1.0,type=float)
     main(parser)

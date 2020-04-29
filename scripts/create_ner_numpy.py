@@ -57,7 +57,7 @@ def main_run(lang):
     words.append("PAD")
     n_words = len(words)
     max_len = max(len_list)
-    max_len = 50
+    max_len = 70
     word2idx = {w: i for i, w in enumerate(words)}
     # tag2idx = {t: i for i, t in enumerate(tags)}
     tag2idx = {'B-PER': 0, 'S-LOC': 1, 'S-ORG': 2, 'S-PER': 3, 'B-LOC': 4, 'E-LOC': 5, 'E-MISC': 6, 'B-ORG': 7, 'I-ORG': 8, 'S-MISC': 9, 'E-PER': 10, 'I-LOC': 11, 'B-MISC': 12, 'I-PER': 13, 'O': 14, 'I-MISC': 15, 'E-ORG': 16}
