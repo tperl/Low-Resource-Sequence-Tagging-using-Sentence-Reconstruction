@@ -21,3 +21,7 @@ Please cite [1](add link here) if you found the resources in this repository use
     pages = "TBD",
 }
 ```
+
+
+## License
+Thie Repo is freely available for free non-commercial use, and may be redistributed under these conditions. Please, see the [license](LICENSE) for further details. Interested in a commercial license? Please contact vinutha.narayamurthy@wipro.com
