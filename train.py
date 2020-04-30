@@ -96,15 +96,23 @@ def main(parser):
             y_src_tr = np.concatenate((y_src_tr, y_src_dev), axis=0)
 
         # Final dataset is both src and target, could be expanded to multiple languages
-        X_tr = np.concatenate((X_tgt_tr, X_src_tr), axis=0)
-        X_char = np.concatenate((X_tgt_char_tr, X_src_char_tr), axis=0)
-        y_tr = np.concatenate((y_tgt_tr, y_src_tr), axis=0)
+        if args.zero_shot:
+            X_tr = X_src_tr
+            X_char = X_src_char_tr
+            y_tr = y_src_tr
+            # language selector input
+            X_lang_tr = np.full((X_tr.shape[0], X_tr.shape[1]), False, dtype=bool)
+            total_embedding_matrix = src_embedding_matrix[X_src_tr.astype(int)]
+        else:
+            X_tr = np.concatenate((X_tgt_tr, X_src_tr), axis=0)
+            X_char = np.concatenate((X_tgt_char_tr, X_src_char_tr), axis=0)
+            y_tr = np.concatenate((y_tgt_tr, y_src_tr), axis=0)
 
-        # language selector input
-        X_lang_tr = np.full((X_tr.shape[0], X_tr.shape[1]), True, dtype=bool)
-        X_lang_tr[X_tgt_tr.shape[0]:] = False
+            # language selector input
+            X_lang_tr = np.full((X_tr.shape[0], X_tr.shape[1]), True, dtype=bool)
+            X_lang_tr[X_tgt_tr.shape[0]:] = False
 
-        total_embedding_matrix =  np.concatenate((tgt_embedding_matrix[X_tgt_tr.astype(int)],src_embedding_matrix[X_src_tr.astype(int)]),axis=0)
+            total_embedding_matrix =  np.concatenate((tgt_embedding_matrix[X_tgt_tr.astype(int)],src_embedding_matrix[X_src_tr.astype(int)]),axis=0)
         # create keras model
         model, crf = TransferModel(word_in, char_in, lang_in, src_embedding_matrix, tgt_embedding_matrix, n_chars, max_len_char, max_len, n_tags, args.add_reconstruction)
         in_data = [X_tr,
@@ -168,5 +176,6 @@ if __name__ == '__main__':
     parser.add_argument('--num_of_epochs', help='num_of_epochs', default=60)
     parser.add_argument('--verbosity', help='verbosity for printing during training', default=2)
     parser.add_argument('--learning_rate', help='learning rate for training', default=0.001)
-    parser.add_argument('--labeling_rate', help='learning rate for training', default=1.0,type=float)
+    parser.add_argument('--labeling_rate', help='labeling rate for training', default=1.0,type=float)
+    parser.add_argument('--zero_shot', help='flag for zero shot training', default=False)
     main(parser)

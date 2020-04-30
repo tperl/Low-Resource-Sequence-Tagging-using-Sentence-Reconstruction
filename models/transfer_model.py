@@ -14,10 +14,10 @@ def TransferModel(word_in,
                   max_len,
                   n_tags,
                   add_reconstruction):
-    h1 = 160
-    h2 = 160
+    h1 = 100
+    h2 = 100
     h3 = 100
-    output_dim = 60
+    output_dim = 80
     embedding_size = src_embedding_matrix.shape[1]
 
     def wordL2Norm(x):
@@ -49,13 +49,14 @@ def TransferModel(word_in,
 
     concat_src = concatenate([char_enc, embedding_src])
     concat_tgt = concatenate([char_enc, embedding_tgt])
+    embedding_switch = Lambda(switchLambda)([lang_in, concat_tgt, concat_src])
 
     # encoder
-    encoder_tgt = Bidirectional(CuDNNLSTM(units=h2, return_sequences=True), name='encoder_tgt')(concat_tgt)  #
-    encoder_src = Bidirectional(CuDNNLSTM(units=h2, return_sequences=True), name='encoder_src')(concat_src)  #
-    encoder_switch = Lambda(switchLambda)([lang_in, encoder_tgt, encoder_src])
+    encoder_tgt = Bidirectional(CuDNNLSTM(units=h2, return_sequences=True), name='encoder_tgt')(embedding_switch)  #
+    # encoder_src = Bidirectional(CuDNNLSTM(units=h2, return_sequences=True), name='encoder_src')(concat_src)  #
+    # encoder_switch = Lambda(switchLambda)([lang_in, encoder_tgt, encoder_src])
 
-    fv = Lambda(sentenceL2Norm, name='feature_vector')(encoder_switch)
+    fv = Lambda(sentenceL2Norm, name='feature_vector')(encoder_tgt)
     model = TimeDistributed(Dropout(0.35))(fv)
     model = Bidirectional(CuDNNLSTM(units=h3, return_sequences=True))(model)  # variational biLSTM
     model = TimeDistributed(Dropout(0.35))(model)
