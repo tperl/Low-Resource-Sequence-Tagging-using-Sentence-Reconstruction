@@ -10,7 +10,7 @@ Please cite [1](add link here) if you found the resources in this repository use
 [1] T. Perl, S. Chaudhury, R. Giryes, [*Low Resource Sequence Tagging using Sentence Reconstruction*](add link here)
 
 ```
-@article{Perl-2020-L2-Reconstruction,
+@article{Perl-2020-low-resource-L2-Reconstruction,
   booktitle = "Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics",
     month = jul,
     year = "2020",
