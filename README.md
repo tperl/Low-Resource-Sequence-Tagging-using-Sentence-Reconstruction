@@ -1,6 +1,8 @@
 # Low Resource Sequence Tagging using Sentence Reconstruction
 This repo implements a Keras model for recreating the results of "Low Resource Sequence Tagging using Sentence Reconstruction"
-
+ 
+# TBD 
+Add usage and links to datasets
 
 ## References
 Please cite [1](add link here) if you found the resources in this repository useful.
