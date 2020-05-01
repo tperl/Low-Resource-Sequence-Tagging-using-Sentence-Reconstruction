@@ -2,13 +2,17 @@
 This repo implements a Keras model for recreating the results of "Low Resource Sequence Tagging using Sentence Reconstruction"
  
 # TBD 
-Add usage and links to datasets and adversarial branch
+Add usage and adversarial branch
 
 # Datasets
 The models are trained using labels in ConLL style. 
 Datasets used: 
-[ConLL2002](https://github.com/teropa/nlp/tree/master/resources/corpora/conll2002)
-[ConLL2003](https://www.clips.uantwerpen.be/conll2003/ner/)
+[ConLL2002](https://github.com/teropa/nlp/tree/master/resources/corpora/conll2002),
+[ConLL2003](https://www.clips.uantwerpen.be/conll2003/ner/),
+[UD 1.2] (https://universaldependencies.org/)
+
+# Embeddings
+We use [MUSE](https://github.com/facebookresearch/MUSE) embeddings
 ## References
 Please cite [1](add link here) if you found the resources in this repository useful.
 
