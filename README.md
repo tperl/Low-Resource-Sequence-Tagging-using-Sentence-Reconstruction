@@ -4,6 +4,10 @@ This repo implements a Keras model for recreating the results of "Low Resource S
 # TBD 
 Add usage and links to datasets and adversarial branch
 
+# Datasets
+The models are trained using labels in ConLL style. 
+Datasets used: 
+## [https://github.com/teropa/nlp/tree/master/resources/corpora/conll2002]
 ## References
 Please cite [1](add link here) if you found the resources in this repository useful.
 
