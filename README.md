@@ -9,7 +9,7 @@ The models are trained using labels in ConLL style.
 Datasets used: 
 [ConLL2002](https://github.com/teropa/nlp/tree/master/resources/corpora/conll2002),
 [ConLL2003](https://www.clips.uantwerpen.be/conll2003/ner/),
-[UD 1.2] (https://universaldependencies.org/)
+[UD1.2](https://universaldependencies.org/)
 
 # Embeddings
 We use [MUSE](https://github.com/facebookresearch/MUSE) embeddings
